@@ -15,4 +15,4 @@
  *
  */
 
-package walkingkooka.text.cursor.parser;
+package walkingkooka.text.cursor.parser.ebnf.charpredicate;
