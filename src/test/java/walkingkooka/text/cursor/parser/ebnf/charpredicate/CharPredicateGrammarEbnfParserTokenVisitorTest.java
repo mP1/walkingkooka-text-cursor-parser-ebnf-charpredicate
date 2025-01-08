@@ -57,8 +57,8 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
     public void testFromGrammarNullDefaultsFails() {
         final String text = "test='text';";
         final EbnfParserToken rule = EbnfRuleParserToken.rule(Lists.of(
-                EbnfParserToken.identifier(TEST, "test"),
-                EbnfParserToken.terminal("terminal", "'terminal'")),
+                        EbnfParserToken.identifier(TEST, "test"),
+                        EbnfParserToken.terminal("terminal", "'terminal'")),
                 text);
         final EbnfGrammarParserToken grammar = EbnfParserToken.grammar(Lists.of(rule), text);
 
