@@ -104,7 +104,7 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     @Override
     protected Visiting startVisit(final EbnfRuleParserToken rule) {
         this.enter();
-        this.accept(rule.token()); // RHS
+        this.accept(rule.assignment()); // RHS
 
         // update the proxy holding all references to this rule...
         final CharPredicateGrammarEbnfParserTokenVisitorProxy proxy = Cast.to(this.identifierToCharPredicate.get(rule.identifier().value()));
@@ -198,7 +198,7 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
 
     private char characterFromIdentifierReference(final EbnfIdentifierParserToken identifier) {
         final EbnfRuleParserToken rule = this.identifierToRule.get(identifier.value());
-        return this.characterForIdentifierOrTerminal(rule.token());
+        return this.characterForIdentifierOrTerminal(rule.assignment());
     }
 
     private char characterFromTerminal(final EbnfTerminalParserToken terminal) {
