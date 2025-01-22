@@ -19,15 +19,11 @@ package test;
 import com.google.j2cl.junit.apt.J2clTestInput;
 import org.junit.Assert;
 import org.junit.Test;
+
 import walkingkooka.collect.map.Maps;
 import walkingkooka.predicate.character.CharPredicate;
 import walkingkooka.text.CharSequences;
-import walkingkooka.text.cursor.TextCursor;
-import walkingkooka.text.cursor.TextCursors;
-import walkingkooka.text.cursor.parser.ParserReporters;
-import walkingkooka.text.cursor.parser.ebnf.EbnfGrammarParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfIdentifierName;
-import walkingkooka.text.cursor.parser.ebnf.EbnfParserContexts;
 import walkingkooka.text.cursor.parser.ebnf.EbnfParserToken;
 import walkingkooka.text.cursor.parser.ebnf.charpredicate.EbnfGrammarCharPredicates;
 
@@ -41,30 +37,53 @@ public class JunitTest {
     @Test
     public void testParseGrammarAndTest() {
         final char test = 'A';
-        Assert.assertEquals("parsed " + CharSequences.quoteAndEscape(GRAMMAR) + " test " + CharSequences.quoteIfChars(test),
+
+        this.checkEquals(
+                "parsed " + CharSequences.quoteAndEscape(GRAMMAR) + " test " + CharSequences.quoteIfChars(test),
                 true,
-                loadGrammarAndGetCharPredicate().test(test));
+                this.loadGrammarAndGetCharPredicate().test(test)
+        );
     }
 
     @Test
     public void testParseGrammarAndTest2() {
         final char test = 'Z';
-        Assert.assertEquals("parsed " + CharSequences.quoteAndEscape(GRAMMAR) + " test " + CharSequences.quoteIfChars(test),
+        this.checkEquals(
+                "parsed " + CharSequences.quoteAndEscape(GRAMMAR) + " test " + CharSequences.quoteIfChars(test),
                 false,
-                loadGrammarAndGetCharPredicate().test(test));
+                this.loadGrammarAndGetCharPredicate().test(test)
+        );
     }
 
     private CharPredicate loadGrammarAndGetCharPredicate() {
-        final TextCursor grammarFile = TextCursors.charSequence(GRAMMAR);
-        final EbnfGrammarParserToken parsed = EbnfParserToken.grammarParser()
-                .orFailIfCursorNotEmpty(ParserReporters.basic())
-                .parse(grammarFile, EbnfParserContexts.basic())
-                .get()
-                .cast(EbnfGrammarParserToken.class);
-
-        final Map<EbnfIdentifierName, CharPredicate> predicates = EbnfGrammarCharPredicates.fromGrammar(parsed, Maps.empty());
+        final Map<EbnfIdentifierName, CharPredicate> predicates = EbnfGrammarCharPredicates.fromGrammar(
+                EbnfParserToken.parse(GRAMMAR),
+                Maps.empty()
+        );
         final CharPredicate predicate = predicates.get(EbnfIdentifierName.with("TEST"));
-        Assert.assertNotEquals("CharPredicate \"TEST\" not found in grammar " + CharSequences.quoteAndEscape(GRAMMAR), null, predicate);
+        this.checkNotEquals(
+                "CharPredicate \"TEST\" not found in grammar " + CharSequences.quoteAndEscape(GRAMMAR),
+                null,
+                predicate
+        );
         return predicate;
+    }
+
+    private void checkEquals(final String message,
+                             final Object expected,
+                             final Object actual) {
+        Assert.assertEquals(
+                expected,
+                actual
+        );
+    }
+
+    private void checkNotEquals(final String message,
+                                final Object expected,
+                                final Object actual) {
+        Assert.assertNotEquals(
+                expected,
+                actual
+        );
     }
 }
