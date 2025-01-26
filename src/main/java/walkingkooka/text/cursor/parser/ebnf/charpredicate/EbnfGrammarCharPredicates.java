@@ -19,8 +19,8 @@ package walkingkooka.text.cursor.parser.ebnf.charpredicate;
 
 import walkingkooka.predicate.character.CharPredicate;
 import walkingkooka.reflect.PublicStaticHelper;
-import walkingkooka.text.cursor.parser.ebnf.EbnfGrammarParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfIdentifierName;
+import walkingkooka.text.cursor.parser.ebnf.GrammarEbnfParserToken;
 
 import java.util.Map;
 
@@ -29,7 +29,7 @@ final public class EbnfGrammarCharPredicates implements PublicStaticHelper {
     /**
      * {@see CharPredicateGrammarEbnfParserTokenVisitor}
      */
-    public static Map<EbnfIdentifierName, CharPredicate> fromGrammar(final EbnfGrammarParserToken grammar,
+    public static Map<EbnfIdentifierName, CharPredicate> fromGrammar(final GrammarEbnfParserToken grammar,
                                                                      final Map<EbnfIdentifierName, CharPredicate> predefined) {
         return CharPredicateGrammarEbnfParserTokenVisitor.fromGrammar(grammar, predefined);
     }
