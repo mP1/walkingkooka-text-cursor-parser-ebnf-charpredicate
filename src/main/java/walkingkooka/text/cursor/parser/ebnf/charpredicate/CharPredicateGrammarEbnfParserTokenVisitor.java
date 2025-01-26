@@ -27,19 +27,19 @@ import walkingkooka.predicate.character.CharPredicateBuilder;
 import walkingkooka.predicate.character.CharPredicates;
 import walkingkooka.text.CharSequences;
 import walkingkooka.text.cursor.parser.ParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfAlternativeParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfConcatenationParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfExceptionParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfGrammarParserToken;
+import walkingkooka.text.cursor.parser.ebnf.AlternativeEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.ConcatenationEbnfParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfIdentifierName;
-import walkingkooka.text.cursor.parser.ebnf.EbnfIdentifierParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfOptionalParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfParserTokenVisitor;
-import walkingkooka.text.cursor.parser.ebnf.EbnfRangeParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfRepeatedParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfRuleParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfTerminalParserToken;
+import walkingkooka.text.cursor.parser.ebnf.ExceptionEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.GrammarEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.IdentifierEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.OptionalEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.RangeEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.RepeatedEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.RuleEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.TerminalEbnfParserToken;
 import walkingkooka.visit.Visiting;
 
 import java.util.List;
@@ -51,7 +51,7 @@ import java.util.Objects;
  */
 final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVisitor {
 
-    static Map<EbnfIdentifierName, CharPredicate> fromGrammar(final EbnfGrammarParserToken grammar,
+    static Map<EbnfIdentifierName, CharPredicate> fromGrammar(final GrammarEbnfParserToken grammar,
                                                               final Map<EbnfIdentifierName, CharPredicate> predefined) {
         Objects.requireNonNull(grammar, "grammar");
         Objects.requireNonNull(predefined, "predefined");
@@ -73,14 +73,14 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // GRAMMAR ........................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfGrammarParserToken token) {
+    protected Visiting startVisit(final GrammarEbnfParserToken token) {
         // need this mapping to fetch tokens for a rule by identifier at any stage or walking...
         token.value()
                 .stream()
                 .filter(t -> t instanceof EbnfParserToken)
                 .map(CharPredicateGrammarEbnfParserTokenVisitor::toEbnfParserToken)
                 .filter(EbnfParserToken::isRule)
-                .map(CharPredicateGrammarEbnfParserTokenVisitor::toEbnfRuleParserToken)
+                .map(CharPredicateGrammarEbnfParserTokenVisitor::toRuleEbnfParserToken)
                 .forEach(this::ruleIdentifier);
         return Visiting.CONTINUE;
     }
@@ -89,11 +89,11 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
         return token.cast(EbnfParserToken.class);
     }
 
-    private static EbnfRuleParserToken toEbnfRuleParserToken(final ParserToken token) {
-        return token.cast(EbnfRuleParserToken.class);
+    private static RuleEbnfParserToken toRuleEbnfParserToken(final ParserToken token) {
+        return token.cast(RuleEbnfParserToken.class);
     }
 
-    private void ruleIdentifier(final EbnfRuleParserToken rule) {
+    private void ruleIdentifier(final RuleEbnfParserToken rule) {
         final EbnfIdentifierName identifier = rule.identifier().value();
         this.identifierToRule.put(identifier, rule);
         this.identifierToCharPredicate.put(identifier, CharPredicateGrammarEbnfParserTokenVisitorProxy.with(identifier));
@@ -102,7 +102,7 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // RULE ........................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfRuleParserToken rule) {
+    protected Visiting startVisit(final RuleEbnfParserToken rule) {
         this.enter();
         this.accept(rule.assignment()); // RHS
 
@@ -113,18 +113,18 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
         return Visiting.SKIP; // skip because we dont want to visit LHS of rule.
     }
 
-    private final Map<EbnfIdentifierName, EbnfRuleParserToken> identifierToRule = Maps.ordered();
+    private final Map<EbnfIdentifierName, RuleEbnfParserToken> identifierToRule = Maps.ordered();
 
     // ALT .......................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfAlternativeParserToken token) {
+    protected Visiting startVisit(final AlternativeEbnfParserToken token) {
         this.enter();
         return super.startVisit(token);
     }
 
     @Override
-    protected void endVisit(final EbnfAlternativeParserToken token) {
+    protected void endVisit(final AlternativeEbnfParserToken token) {
         final CharPredicateBuilder b = CharPredicates.builder();
         for (CharPredicate p : this.children) {
             b.or(p);
@@ -138,20 +138,20 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // CONCAT .......................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfConcatenationParserToken token) {
+    protected Visiting startVisit(final ConcatenationEbnfParserToken token) {
         return this.fail("Concatenation", token);
     }
 
     // EXCEPTION .......................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfExceptionParserToken token) {
+    protected Visiting startVisit(final ExceptionEbnfParserToken token) {
         this.enter();
         return super.startVisit(token);
     }
 
     @Override
-    protected void endVisit(final EbnfExceptionParserToken token) {
+    protected void endVisit(final ExceptionEbnfParserToken token) {
         final CharPredicate predicate = this.children.get(0)
                 .andNot(this.children.get(1))
                 .setToString(token.toString());
@@ -163,20 +163,20 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // OPTIONAL .......................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfOptionalParserToken token) {
+    protected Visiting startVisit(final OptionalEbnfParserToken token) {
         return this.fail("Optional", token);
     }
 
     // RANGE ...................................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfRangeParserToken token) {
+    protected Visiting startVisit(final RangeEbnfParserToken token) {
         this.enter();
         return super.startVisit(token);
     }
 
     @Override
-    protected void endVisit(final EbnfRangeParserToken token) {
+    protected void endVisit(final RangeEbnfParserToken token) {
         final char begin = this.characterForIdentifierOrTerminal(token.begin());
         final char end = this.characterForIdentifierOrTerminal(token.end());
 
@@ -190,18 +190,18 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
 
     private char characterForIdentifierOrTerminal(final EbnfParserToken token) {
         return token.isTerminal() ?
-                this.characterFromTerminal(token.cast(EbnfTerminalParserToken.class)) :
+                this.characterFromTerminal(token.cast(TerminalEbnfParserToken.class)) :
                 token.isIdentifier() ?
-                        this.characterFromIdentifierReference(token.cast(EbnfIdentifierParserToken.class)) :
+                        this.characterFromIdentifierReference(token.cast(IdentifierEbnfParserToken.class)) :
                         failInvalidRangeBound("Invalid range bound, expected terminal or identifier indirectly pointing to a terminal but got " + token);
     }
 
-    private char characterFromIdentifierReference(final EbnfIdentifierParserToken identifier) {
-        final EbnfRuleParserToken rule = this.identifierToRule.get(identifier.value());
+    private char characterFromIdentifierReference(final IdentifierEbnfParserToken identifier) {
+        final RuleEbnfParserToken rule = this.identifierToRule.get(identifier.value());
         return this.characterForIdentifierOrTerminal(rule.assignment());
     }
 
-    private char characterFromTerminal(final EbnfTerminalParserToken terminal) {
+    private char characterFromTerminal(final TerminalEbnfParserToken terminal) {
         final String value = terminal.value();
         final CharSequence unescaped = CharSequences.unescape(value);
         if (unescaped.length() != 1) {
@@ -217,14 +217,14 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // REPEATED .......................................................................................................
 
     @Override
-    protected Visiting startVisit(final EbnfRepeatedParserToken token) {
+    protected Visiting startVisit(final RepeatedEbnfParserToken token) {
         return this.fail("Repeated", token);
     }
 
     // IDENTIFIER .......................................................................................................
 
     @Override
-    protected void visit(final EbnfIdentifierParserToken token) {
+    protected void visit(final IdentifierEbnfParserToken token) {
         this.add(
                 this.identifierToCharPredicate.get(token.value()),
                 token);
@@ -233,7 +233,7 @@ final class CharPredicateGrammarEbnfParserTokenVisitor extends EbnfParserTokenVi
     // TERMINAL .......................................................................................................
 
     @Override
-    protected void visit(final EbnfTerminalParserToken token) {
+    protected void visit(final TerminalEbnfParserToken token) {
         this.add(
                 CharPredicates.any(token.value()).setToString(token.toString()),
                 token);

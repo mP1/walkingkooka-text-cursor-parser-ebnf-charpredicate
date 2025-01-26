@@ -29,13 +29,12 @@ import walkingkooka.text.cursor.TextCursor;
 import walkingkooka.text.cursor.TextCursorSavePoint;
 import walkingkooka.text.cursor.TextCursors;
 import walkingkooka.text.cursor.parser.ParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfGrammarParserToken;
 import walkingkooka.text.cursor.parser.ebnf.EbnfGrammarParserTokenInvalidReferencesException;
 import walkingkooka.text.cursor.parser.ebnf.EbnfIdentifierName;
 import walkingkooka.text.cursor.parser.ebnf.EbnfParserContexts;
 import walkingkooka.text.cursor.parser.ebnf.EbnfParserToken;
-import walkingkooka.text.cursor.parser.ebnf.EbnfRuleParserToken;
-import walkingkooka.text.cursor.parser.ebnf.charpredicate.CharPredicateGrammarEbnfParserTokenVisitor;
+import walkingkooka.text.cursor.parser.ebnf.GrammarEbnfParserToken;
+import walkingkooka.text.cursor.parser.ebnf.RuleEbnfParserToken;
 
 import java.io.IOException;
 import java.util.Map;
@@ -56,11 +55,11 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
     @Test
     public void testFromGrammarNullDefaultsFails() {
         final String text = "test='text';";
-        final EbnfParserToken rule = EbnfRuleParserToken.rule(Lists.of(
+        final EbnfParserToken rule = RuleEbnfParserToken.rule(Lists.of(
                         EbnfParserToken.identifier(TEST, "test"),
                         EbnfParserToken.terminal("terminal", "'terminal'")),
                 text);
-        final EbnfGrammarParserToken grammar = EbnfParserToken.grammar(Lists.of(rule), text);
+        final GrammarEbnfParserToken grammar = EbnfParserToken.grammar(Lists.of(rule), text);
 
         assertThrows(NullPointerException.class, () -> CharPredicateGrammarEbnfParserTokenVisitor.fromGrammar(grammar, null));
     }
@@ -165,7 +164,7 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
      * Parses the grammar file, uses the transformer to convert each rule into matchers and then returns the parser for the rule called "TEST".
      */
     private CharPredicate createCharPredicate1(final String grammarResourceFile) {
-        final EbnfGrammarParserToken grammar = this.grammar(grammarResourceFile);
+        final GrammarEbnfParserToken grammar = this.grammar(grammarResourceFile);
 
         final Map<EbnfIdentifierName, CharPredicate> defaults = Maps.hash();
         defaults.put(EbnfIdentifierName.with("ATSIGN"), CharPredicates.is('@'));
@@ -178,7 +177,7 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
 
     private final EbnfIdentifierName TEST = EbnfIdentifierName.with("TEST");
 
-    private EbnfGrammarParserToken grammar(final String resourceName) {
+    private GrammarEbnfParserToken grammar(final String resourceName) {
         try {
             final Class<?> classs = this.getClass();
             final String text = this.resourceAsText(classs, classs.getSimpleName() + "/" + resourceName);
@@ -194,7 +193,7 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
                 final CharSequence remaining = save.textBetween();
                 fail("Failed to parse all of grammar from " + CharSequences.quote(resourceName) + " text remaining: " + remaining + "\n\n" + CharSequences.escape(remaining) + "\n\nGrammar File:\n" + text);
             }
-            return grammar.get().cast(EbnfGrammarParserToken.class);
+            return grammar.get().cast(GrammarEbnfParserToken.class);
         } catch (final IOException cause) {
             throw new Error("failed to read grammar from " + CharSequences.quote(resourceName));
         }
