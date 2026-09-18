@@ -17,7 +17,6 @@
 
 package walkingkooka.text.cursor.parser.ebnf.charpredicate;
 
-import walkingkooka.reflect.JavaVisibility;
 import walkingkooka.reflect.PublicStaticHelperTesting;
 
 import java.lang.reflect.Method;
@@ -32,10 +31,5 @@ public final class EbnfGrammarCharPredicatesTest implements PublicStaticHelperTe
     @Override
     public boolean canHavePublicTypes(final Method method) {
         return false;
-    }
-
-    @Override
-    public JavaVisibility typeVisibility() {
-        return JavaVisibility.PUBLIC;
     }
 }
