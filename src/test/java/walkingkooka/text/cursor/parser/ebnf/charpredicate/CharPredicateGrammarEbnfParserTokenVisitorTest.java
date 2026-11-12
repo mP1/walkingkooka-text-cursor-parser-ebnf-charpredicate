@@ -147,11 +147,6 @@ public final class CharPredicateGrammarEbnfParserTokenVisitorTest implements Cha
     }
 
     @Override
-    public void testCheckToStringOverridden() {
-        // nop
-    }
-
-    @Override
     public CharPredicate createCharPredicate() {
         return this.createCharPredicate1("default.grammar");
     }
